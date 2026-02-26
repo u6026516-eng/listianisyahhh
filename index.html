@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POS APP - TJKT</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg,#4b0082,#8a2be2);
+    margin:0;
+    padding:0;
+    color:white;
+}
+.container{
+    width:90%;
+    max-width:500px;
+    margin:40px auto;
+    background:rgba(0,0,0,0.6);
+    padding:20px;
+    border-radius:15px;
+}
+input,button{
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border-radius:8px;
+    border:none;
+}
+button{
+    background:#ff00ff;
+    color:white;
+    cursor:pointer;
+}
+button:hover{
+    background:#ff66ff;
+}
+.hidden{display:none;}
+table{
+    width:100%;
+    background:white;
+    color:black;
+    margin-top:10px;
+}
+th,td{
+    padding:8px;
+    text-align:center;
+}
+.link{
+    color:#ffccff;
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="home">
+    <h2>Selamat Datang di POS APP</h2>
+    <button onclick="showLogin()">Login</button>
+    <button onclick="showRegister()">Daftar</button>
+</div>
+
+<div class="container hidden" id="login">
+    <h2>Login</h2>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPass" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p class="link" onclick="backHome()">Kembali</p>
+</div>
+
+<div class="container hidden" id="register">
+    <h2>Daftar Akun</h2>
+    <input type="text" id="regNama" placeholder="Nama">
+    <input type="email" id="regEmail" placeholder="Email">
+    <input type="password" id="regPass" placeholder="Password">
+    <button onclick="register()">Daftar</button>
+    <p class="link" onclick="backHome()">Kembali</p>
+</div>
+
+<div class="container hidden" id="dashboard">
+    <h2>Dashboard</h2>
+    <p id="welcome"></p>
+    <button onclick="showProfile()">Edit Profile</button>
+    <button onclick="showProduk()">Kelola Produk</button>
+    <button onclick="logout()">Logout</button>
+</div>
+
+<div class="container hidden" id="profile">
+    <h2>Edit Profile</h2>
+    <input type="text" id="editNama">
+    <input type="password" id="editPass">
+    <button onclick="saveProfile()">Simpan</button>
+    <button onclick="showDashboard()">Kembali</button>
+</div>
+
+<div class="container hidden" id="produk">
+    <h2>CRUD Produk</h2>
+    <input type="text" id="namaProduk" placeholder="Nama Produk">
+    <input type="number" id="hargaProduk" placeholder="Harga">
+    <input type="number" id="stokProduk" placeholder="Stok">
+    <button onclick="tambahProduk()">Tambah</button>
+    <div id="listProduk"></div>
+    <button onclick="showDashboard()">Kembali</button>
+</div>
+
+<script>
+let currentUser=null;
+
+function showLogin(){hideAll();login.classList.remove("hidden");}
+function showRegister(){hideAll();register.classList.remove("hidden");}
+function showDashboard(){hideAll();dashboard.classList.remove("hidden");}
+function showProfile(){
+    hideAll();
+    profile.classList.remove("hidden");
+    editNama.value=currentUser.nama;
+}
+function showProduk(){
+    hideAll();
+    produk.classList.remove("hidden");
+    tampilProduk();
+}
+function backHome(){hideAll();home.classList.remove("hidden");}
+function hideAll(){
+    document.querySelectorAll(".container").forEach(x=>x.classList.add("hidden"));
+}
+
+function register(){
+    let user={
+        nama:regNama.value,
+        email:regEmail.value,
+        pass:regPass.value
+    };
+    localStorage.setItem(user.email,JSON.stringify(user));
+    alert("Berhasil daftar!");
+    showLogin();
+}
+
+function login(){
+    let data=localStorage.getItem(loginEmail.value);
+    if(!data){alert("Akun tidak ada!");return;}
+    let user=JSON.parse(data);
+    if(user.pass===loginPass.value){
+        currentUser=user;
+        welcome.innerText="Halo, "+user.nama;
+        showDashboard();
+    }else{
+        alert("Password salah!");
+    }
+}
+
+function logout(){
+    currentUser=null;
+    backHome();
+}
+
+function saveProfile(){
+    currentUser.nama=editNama.value;
+    currentUser.pass=editPass.value;
+    localStorage.setItem(currentUser.email,JSON.stringify(currentUser));
+    alert("Profile diperbarui!");
+    showDashboard();
+}
+
+function tambahProduk(){
+    let produkList=JSON.parse(localStorage.getItem("produk"))||[];
+    produkList.push({
+        nama:namaProduk.value,
+        harga:hargaProduk.value,
+        stok:stokProduk.value
+    });
+    localStorage.setItem("produk",JSON.stringify(produkList));
+    tampilProduk();
+}
+
+function tampilProduk(){
+    let produkList=JSON.parse(localStorage.getItem("produk"))||[];
+    let html="<table><tr><th>Nama</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr>";
+    produkList.forEach((p,i)=>{
+        html+=`<tr>
+        <td>${p.nama}</td>
+        <td>${p.harga}</td>
+        <td>${p.stok}</td>
+        <td><button onclick="hapusProduk(${i})">Hapus</button></td>
+        </tr>`;
+    });
+    html+="</table>";
+    listProduk.innerHTML=html;
+}
+
+function hapusProduk(i){
+    let produkList=JSON.parse(localStorage.getItem("produk"))||[];
+    produkList.splice(i,1);
+    localStorage.setItem("produk",JSON.stringify(produkList));
+    tampilProduk();
+}
+</script>
+
+</body>
+</html>
